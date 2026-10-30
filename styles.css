@@ -1,0 +1,1264 @@
+/* ==========================================================================
+   NOCTIS — BRAND DESIGN SYSTEM & SCROLLYTELLING STYLES
+   Mood: Total blackout city at night. Quiet. Expensive. Precise.
+   STRICT RULES: No gradients, no glassmorphism, no glows, no drop shadows.
+   Only flat solid colors, 1px hairlines, photography and type.
+   ========================================================================== */
+
+:root {
+  /* Design Tokens */
+  --asphalt: #07080A;
+  --graphite: #121418;
+  --fog: #8A8F98;
+  --bone: #EDEAE4;
+  --xenon: #CFE3FF;
+  --taillight: #E1251B;
+  --hairline: rgba(237, 234, 228, 0.12);
+
+  /* Fonts */
+  --font-display: 'Archivo', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-hud: 'JetBrains Mono', monospace;
+
+  /* Global Easing */
+  --ease-noctis: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+html {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  scroll-behavior: auto;
+  overflow-x: clip; /* Never use overflow:hidden on ancestors of sticky */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  overflow-x: clip;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Typography Classes */
+.display-font {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 300;
+  color: var(--bone);
+}
+
+.hud-mono {
+  font-family: var(--font-hud);
+  font-size: clamp(11px, 0.8vw, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 400;
+  color: var(--fog);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ==========================================================================
+   GLOBAL FILM GRAIN OVERLAY
+   Hardware-accelerated, shifted randomly ~8 times/sec, 3.5% opacity, no gradients.
+   ========================================================================== */
+.grain-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9000;
+  opacity: 0.035;
+  transform: translateZ(0);
+}
+
+/* ==========================================================================
+   CUSTOM CURSOR ("THE HEADLIGHT", DESKTOP ONLY)
+   ========================================================================== */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  will-change: transform;
+  transform: translate3d(-100px, -100px, 0);
+}
+
+@media (pointer: fine) {
+  body.has-custom-cursor,
+  body.has-custom-cursor a,
+  body.has-custom-cursor button,
+  body.has-custom-cursor [data-cursor] {
+    cursor: none !important;
+  }
+
+  .custom-cursor {
+    display: block;
+  }
+}
+
+.cursor-headlight {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.25s var(--ease-noctis), height 0.25s var(--ease-noctis);
+}
+
+/* 28px Ring */
+.cursor-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--xenon);
+  border-radius: 50%;
+  transition: border-color 0.12s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 6px Solid Xenon Dot */
+.cursor-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  border-radius: 50%;
+  transition: background-color 0.12s ease, opacity 0.2s ease;
+}
+
+/* 44x2px Horizontal Light Bar */
+.cursor-bar {
+  position: absolute;
+  width: 44px;
+  height: 2px;
+  background-color: var(--xenon);
+  opacity: 0;
+  transform: scaleX(0);
+  transition: opacity 0.2s var(--ease-noctis), transform 0.2s var(--ease-noctis), background-color 0.12s ease;
+}
+
+/* Cursor Label beside bar */
+.cursor-label {
+  position: absolute;
+  left: 32px;
+  top: -6px;
+  font-family: var(--font-hud);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--xenon);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-noctis);
+}
+
+/* Hover State: Morphs into 44x2px light bar */
+.custom-cursor.is-hover .cursor-ring {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.custom-cursor.is-hover .cursor-dot {
+  opacity: 0;
+}
+
+.custom-cursor.is-hover .cursor-bar {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.custom-cursor.is-hover .cursor-label {
+  opacity: 1;
+}
+
+/* Mousedown State: 120ms Brighter pulse */
+.custom-cursor.is-pressed .cursor-ring {
+  border-color: #FFFFFF;
+}
+
+.custom-cursor.is-pressed .cursor-dot,
+.custom-cursor.is-pressed .cursor-bar {
+  background-color: #FFFFFF;
+}
+
+/* ==========================================================================
+   PRELOADER
+   ========================================================================== */
+.preloader {
+  position: fixed;
+  inset: 0;
+  background-color: var(--asphalt);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s var(--ease-noctis);
+}
+
+.preloader.is-loaded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 320px;
+  text-align: center;
+}
+
+.preloader-brand {
+  font-size: clamp(36px, 6vw, 64px);
+  color: var(--bone);
+  margin-bottom: 24px;
+}
+
+.preloader-track {
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.preloader-bar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0%;
+  height: 100%;
+  background-color: var(--xenon);
+  transform: translateX(-50%);
+  transition: width 0.15s ease-out, background-color 0.12s ease;
+}
+
+.preloader-bar.is-bright {
+  background-color: #FFFFFF;
+}
+
+.preloader-count {
+  font-size: 11px;
+  color: var(--fog);
+}
+
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  mix-blend-mode: difference;
+  z-index: 5000;
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.4s var(--ease-noctis);
+}
+
+.site-header.is-hidden {
+  transform: translateY(-100%);
+}
+
+.nav-brand {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.nav-link {
+  font-size: 11px;
+  color: #FFFFFF;
+  position: relative;
+  padding: 6px 0;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--xenon);
+  transition: width 0.3s var(--ease-noctis);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-cta {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 6px 16px;
+}
+
+.nav-cta:hover {
+  border-color: #FFFFFF;
+}
+
+.nav-cta::after {
+  display: none;
+}
+
+/* ==========================================================================
+   SCROLLYTELLING COMMON STAGE
+   ========================================================================== */
+.scrolly-section {
+  position: relative;
+  width: 100%;
+}
+
+.sticky-stage {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background-color: var(--asphalt);
+  transform: translateZ(0);
+}
+
+.scrolly-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: translateZ(0);
+}
+
+/* 1px Xenon Bottom Progress Line */
+.section-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 40;
+}
+
+.section-progress-fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--xenon);
+  transform-origin: left center;
+}
+
+/* Line-by-line reveal animation */
+.reveal-line-wrapper {
+  overflow: hidden;
+  display: block;
+}
+
+.reveal-line {
+  display: inline-block;
+  transform: translateY(102%);
+  opacity: 0;
+  transition: transform 0.8s var(--ease-noctis), opacity 0.8s var(--ease-noctis);
+}
+
+.is-active .reveal-line {
+  transform: translateY(0%);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   SECTION 1: HERO
+   Chapters placed in dark sky (top 15-35%), never over the car.
+   ========================================================================== */
+.hero-hud {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-active-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-tick {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background-color: var(--taillight);
+}
+
+.hud-label {
+  font-size: 10px;
+  color: var(--fog);
+}
+
+.hud-item .hud-mono {
+  color: var(--bone);
+}
+
+/* Hero Chapters Container */
+.hero-chapters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.hero-chapter {
+  position: absolute;
+  width: 100%;
+  padding: 0 40px;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-noctis);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hero-chapter.is-active {
+  opacity: 1;
+}
+
+.hero-chapter-center {
+  top: 18%;
+}
+
+.hero-title {
+  font-size: clamp(48px, 9vw, 130px);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--bone);
+  margin-bottom: 8px;
+}
+
+.hero-sub {
+  font-size: clamp(16px, 1.4vw, 20px);
+  color: var(--fog);
+  margin-bottom: 28px;
+}
+
+.hero-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.hint-pulse-line {
+  width: 32px;
+  height: 1px;
+  background-color: var(--xenon);
+  animation: pulseLine 2s infinite ease-in-out;
+}
+
+@keyframes pulseLine {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
+  50% { opacity: 1; transform: scaleX(1.3); }
+}
+
+.hero-headline {
+  font-size: clamp(28px, 4.5vw, 68px);
+  font-weight: 300;
+  line-height: 1.15;
+  color: var(--bone);
+  max-width: 900px;
+}
+
+.hero-chapter-bottom {
+  top: 16%;
+}
+
+.hero-model-title {
+  font-size: clamp(44px, 8vw, 110px);
+  font-weight: 300;
+  color: var(--bone);
+  margin-bottom: 8px;
+}
+
+.hero-specs {
+  font-size: clamp(11px, 1vw, 14px);
+  color: var(--fog);
+  margin-bottom: 24px;
+}
+
+.hero-cta-wrapper {
+  pointer-events: auto;
+}
+
+.hero-cta-link {
+  display: inline-block;
+  padding: 10px 24px;
+  border: 1px solid var(--hairline);
+  color: var(--bone);
+  font-size: 11px;
+  transition: border-color 0.25s var(--ease-noctis), background-color 0.25s var(--ease-noctis), color 0.25s var(--ease-noctis);
+}
+
+.hero-cta-link:hover {
+  border-color: var(--xenon);
+  background-color: var(--xenon);
+  color: var(--asphalt);
+}
+
+/* ==========================================================================
+   SECTION 2: STATEMENT (100VH, NOT PINNED)
+   ========================================================================== */
+.statement-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--asphalt);
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.statement-container {
+  max-width: 1200px;
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.statement-label {
+  margin-bottom: 40px;
+  color: var(--fog);
+}
+
+.statement-sentence {
+  font-size: clamp(32px, 5.2vw, 76px);
+  font-weight: 300;
+  line-height: 1.25;
+  color: var(--bone);
+}
+
+.statement-word {
+  display: inline-block;
+  opacity: 0.15;
+  transition: opacity 0.3s var(--ease-noctis);
+  margin-right: 0.22em;
+}
+
+.statement-word.is-illuminated {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   SECTION 3: DISMANTLE (PINNED, ~350VH)
+   ========================================================================== */
+.dismantle-header {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dismantle-title {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 300;
+  color: var(--bone);
+}
+
+.dismantle-callouts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.callout-item {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s var(--ease-noctis), transform 0.4s var(--ease-noctis);
+}
+
+.callout-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.callout-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.callout-line {
+  position: absolute;
+  background-color: var(--xenon);
+  height: 1px;
+}
+
+.callout-card {
+  position: absolute;
+  width: 240px;
+  background-color: var(--asphalt);
+  border: 1px solid var(--hairline);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.callout-code {
+  color: var(--xenon);
+  font-size: 11px;
+}
+
+.callout-title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bone);
+  line-height: 1.35;
+}
+
+.callout-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--fog);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   SECTION 4: LINEUP (HOVER ACCORDION, NOT PINNED, 100VH)
+   ========================================================================== */
+.lineup-section {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--asphalt);
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.lineup-header-block {
+  padding: 32px 40px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.lineup-heading {
+  font-size: clamp(24px, 3.2vw, 44px);
+  font-weight: 300;
+  color: var(--bone);
+}
+
+.lineup-accordion {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  border-top: 1px solid var(--hairline);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accordion Slide */
+.lineup-slide {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--hairline);
+  background-color: var(--asphalt);
+  overflow: hidden;
+  transition: flex-grow 0.6s var(--ease-noctis);
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.lineup-slide.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.7s var(--ease-noctis), transform 0.7s var(--ease-noctis), flex-grow 0.6s var(--ease-noctis);
+}
+
+.lineup-slide:last-child {
+  border-right: none;
+}
+
+/* Open Slide Expansion */
+.lineup-slide.is-open {
+  flex-grow: 4.5;
+}
+
+/* Closed Slide State */
+.slide-closed-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 16px;
+  z-index: 5;
+  transition: opacity 0.3s var(--ease-noctis);
+  cursor: pointer;
+}
+
+.lineup-slide.is-open .slide-closed-view {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slide-closed-num {
+  font-size: 12px;
+  color: var(--fog);
+}
+
+.slide-closed-name {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--bone);
+  margin-top: auto;
+  margin-bottom: 24px;
+}
+
+.slide-closed-thumb {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  object-fit: cover;
+  object-position: 80% 50%;
+  filter: grayscale(100%) brightness(25%);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+/* Open Slide View */
+.slide-open-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 48px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity 0.4s var(--ease-noctis);
+}
+
+.lineup-slide.is-open .slide-open-view {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.slide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.slide-model-name {
+  font-size: clamp(36px, 5.5vw, 72px);
+  line-height: 1;
+  color: var(--bone);
+}
+
+.slide-model-number {
+  color: var(--fog);
+}
+
+/* Floor Line & Car Image */
+.slide-floor-line {
+  position: absolute;
+  top: 72%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 2;
+}
+
+.slide-car-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.slide-car-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center 72%;
+  transform: translateX(-6%);
+  opacity: 0;
+  transition: transform 0.6s var(--ease-noctis), opacity 0.4s var(--ease-noctis);
+}
+
+.lineup-slide.is-open .slide-car-img {
+  transform: translateX(0%);
+  opacity: 1;
+}
+
+/* Details Section Under Car */
+.slide-details {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 10;
+  padding-bottom: 24px;
+}
+
+.slide-tagline {
+  font-size: 16px;
+  color: var(--bone);
+  max-width: 48ch;
+}
+
+.slide-specs-row {
+  display: flex;
+  gap: 40px;
+}
+
+.spec-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spec-col .spec-label {
+  font-size: 10px;
+  color: var(--fog);
+}
+
+.spec-col .spec-val {
+  font-size: 13px;
+  color: var(--bone);
+}
+
+.slide-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.slide-swatches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch-btn {
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.swatch-btn.is-active {
+  border: 1px solid var(--bone);
+}
+
+.slide-configure-link {
+  font-size: 11px;
+  color: var(--xenon);
+  padding: 6px 0;
+  position: relative;
+}
+
+.slide-configure-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--xenon);
+}
+
+/* ==========================================================================
+   SECTION 5: RESERVE (100VH)
+   ========================================================================== */
+.reserve-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000000;
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--hairline);
+  text-align: center;
+}
+
+.reserve-container {
+  max-width: 800px;
+  padding: 80px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reserve-label {
+  margin-bottom: 24px;
+  color: var(--fog);
+}
+
+.reserve-title {
+  font-size: clamp(38px, 6.5vw, 92px);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--bone);
+  margin-bottom: 18px;
+}
+
+.reserve-sub {
+  font-size: clamp(15px, 1.2vw, 17px);
+  color: var(--fog);
+  max-width: 48ch;
+  margin-bottom: 44px;
+  line-height: 1.6;
+}
+
+.reserve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 40px;
+  border: 1px solid var(--xenon);
+  background-color: transparent;
+  color: var(--xenon);
+  position: relative;
+  transition: background-color 0.25s var(--ease-noctis), color 0.25s var(--ease-noctis);
+}
+
+.reserve-btn-tick {
+  width: 2px;
+  height: 14px;
+  background-color: transparent;
+  transition: background-color 0.25s var(--ease-noctis);
+}
+
+.reserve-btn-label {
+  font-size: 12px;
+}
+
+.reserve-btn:hover {
+  background-color: var(--xenon);
+  color: var(--asphalt);
+}
+
+.reserve-btn:hover .reserve-btn-tick {
+  background-color: var(--taillight);
+}
+
+/* Focus visible */
+a:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--xenon);
+  outline-offset: 4px;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+  background-color: var(--asphalt);
+  padding: 80px 40px 40px;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 60px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.footer-brand {
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  color: var(--bone);
+  margin-bottom: 8px;
+}
+
+.footer-tagline {
+  font-size: 14px;
+  color: var(--fog);
+}
+
+.footer-links-grid {
+  display: flex;
+  gap: 80px;
+}
+
+.footer-col-title {
+  font-size: 11px;
+  color: var(--bone);
+  margin-bottom: 20px;
+}
+
+.footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-link {
+  font-size: 11px;
+  color: var(--fog);
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--xenon);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  font-size: 10px;
+  color: var(--fog);
+}
+
+/* ==========================================================================
+   MOBILE & RESPONSIVE RULES (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 0 24px;
+    height: 64px;
+  }
+
+  .nav-links {
+    gap: 18px;
+  }
+
+  .hero-hud {
+    left: 20px;
+    top: auto;
+    bottom: 32px;
+    transform: none;
+    flex-direction: row;
+    gap: 18px;
+  }
+
+  .hero-chapter-center {
+    top: 14%;
+  }
+
+  .hero-title {
+    font-size: 42px;
+  }
+
+  .statement-container {
+    padding: 60px 24px;
+  }
+
+  .statement-sentence {
+    font-size: 26px;
+  }
+
+  .dismantle-header {
+    top: 24px;
+    left: 24px;
+  }
+
+  .lineup-section {
+    height: auto;
+    min-height: auto;
+  }
+
+  .lineup-accordion {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .lineup-slide {
+    flex: none;
+    width: 100%;
+    min-height: 72px;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    transition: min-height 0.5s var(--ease-noctis);
+  }
+
+  .slide-closed-view {
+    position: relative;
+    height: 72px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 24px;
+  }
+
+  .slide-closed-name {
+    writing-mode: horizontal-tb;
+    transform: none;
+    margin: 0 0 0 16px;
+  }
+
+  .slide-closed-thumb {
+    display: none;
+  }
+
+  .slide-open-view {
+    position: relative;
+    padding: 24px;
+    min-height: 480px;
+  }
+
+  .lineup-slide.is-open {
+    min-height: 540px;
+  }
+
+  .slide-floor-line {
+    top: 60%;
+  }
+
+  .slide-car-img {
+    object-position: center 60%;
+  }
+
+  .slide-specs-row {
+    gap: 20px;
+  }
+
+  .footer-top {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .footer-links-grid {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .sticky-stage {
+    position: relative;
+    height: 100vh;
+  }
+
+  .scrolly-section {
+    height: auto !important;
+  }
+
+  .custom-cursor {
+    display: none !important;
+  }
+
+  body.has-custom-cursor,
+  body.has-custom-cursor a,
+  body.has-custom-cursor button {
+    cursor: auto !important;
+  }
+}
